@@ -37,16 +37,7 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         if (advertise == null) {
             throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_CREATE_ADVERTISE_DATA);
         }
-        AdvertiseEntity advertiseEntity = new AdvertiseEntity();
-        advertiseEntity.setTitle(advertise.getTitle());
-        advertiseEntity.setCategoryId(advertise.getCategoryId());
-        advertiseEntity.setDescription(advertise.getDescription());
-        advertiseEntity.setPrice(advertise.getPrice());
-        advertiseEntity.setUsername(authToken);
-        advertiseEntity.setCreatedDate(LocalDate.now());
-        advertiseEntity.setModifiedDate(LocalDate.now());
-        advertiseEntity.setStatusId(1);
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(advertiseEntity));
+        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise)));
     }
 
     // 8

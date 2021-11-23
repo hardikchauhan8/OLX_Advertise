@@ -9,6 +9,8 @@ management:
          include: "*"
 
 spring:
+  application:
+    name: advertise-service
   datasource:
     url: jdbc:mysql://localhost:3306/olx
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,3 +21,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true

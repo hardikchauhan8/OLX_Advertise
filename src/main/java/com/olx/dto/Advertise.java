@@ -1,5 +1,7 @@
 package com.olx.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.olx.utils.LocalDateDeserializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -26,9 +28,11 @@ public class Advertise {
     @ApiModelProperty(value = "Username of a user who has posted the advertise")
     private String username;
 
+    @JsonDeserialize(using= LocalDateDeserializer.class)
     @ApiModelProperty(value = "Date when the advertise is created")
     private LocalDate createdDate;
 
+    @JsonDeserialize(using=LocalDateDeserializer.class)
     @ApiModelProperty(value = "Date when the advertise is last updated")
     private LocalDate modifiedDate;
 
