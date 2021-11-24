@@ -4,10 +4,11 @@ import com.olx.dto.Category;
 import com.olx.dto.Status;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -18,46 +19,46 @@ public class MasterDataDelegateImpl implements MasterDataDelegate {
 
     @Override
     @CircuitBreaker(name = "ALL-CATEGORIES-CIRCUIT_BREAKER", fallbackMethod = "fallbackGetCategories")
-    public List<Category> getCategories() {
-        return restTemplate.getForObject("http://master-data-service/olx/advertise/category", List.class);
+    public ResponseEntity<List<Category>> getCategories() {
+        return new ResponseEntity<>(restTemplate.getForObject("http://api-gateway/olx/masterdata/category", List.class), HttpStatus.OK);
     }
 
-    public List<Category> fallbackGetCategories(Throwable ex) {
+    public ResponseEntity<List<Category>> fallbackGetCategories(Throwable ex) {
         System.out.println("Error in getting all categories -> " + ex.getMessage());
-        return new ArrayList<>();
+        return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
     @CircuitBreaker(name = "CATEGORY-CIRCUIT_BREAKER", fallbackMethod = "fallbackGetCategoryById")
-    public Category getCategoryById(int categoryId) {
-        return restTemplate.getForObject("http://master-data-service/olx/advertise/category/{id}", Category.class, categoryId);
+    public ResponseEntity<Category> getCategoryById(int categoryId) {
+        return new ResponseEntity<>(restTemplate.getForObject("http://api-gateway/olx/masterdata/category/{id}", Category.class, categoryId), HttpStatus.OK);
 
     }
 
-    public Category fallbackGetCategoryById(int categoryId, Throwable ex) {
+    public ResponseEntity<Category> fallbackGetCategoryById(int categoryId, Throwable ex) {
         System.out.println("Error in getting all categories -> " + ex.getMessage());
-        return null;
+        return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
     @CircuitBreaker(name = "ALL-STATUS-CIRCUIT_BREAKER", fallbackMethod = "fallbackGetStatus")
-    public List<Status> getStatus() {
-        return restTemplate.getForObject("http://master-data-service/olx/advertise/status", List.class);
+    public ResponseEntity<List<Status>> getStatus() {
+        return new ResponseEntity<>(restTemplate.getForObject("http://api-gateway/olx/masterdata/status", List.class), HttpStatus.OK);
     }
 
-    public List<Status> fallbackGetStatus(Throwable ex) {
+    public ResponseEntity<List<Status>> fallbackGetStatus(Throwable ex) {
         System.out.println("Error in getting all status -> " + ex.getMessage());
-        return new ArrayList<>();
+        return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
     @CircuitBreaker(name = "STATUS-CIRCUIT_BREAKER", fallbackMethod = "fallbackGetStatusById")
-    public Status getStatusById(int statusId) {
-        return restTemplate.getForObject("http://master-data-service/olx/advertise/status/{id}", Status.class, statusId);
+    public ResponseEntity<Status> getStatusById(int statusId) {
+        return new ResponseEntity<>(restTemplate.getForObject("http://api-gateway/olx/masterdata/status/{id}", Status.class, statusId), HttpStatus.OK);
     }
 
-    public Status fallbackGetStatusById(int categoryId, Throwable ex) {
+    public ResponseEntity<Status> fallbackGetStatusById(int categoryId, Throwable ex) {
         System.out.println("Error in getting status by id -> " + ex.getMessage());
-        return null;
+        return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
     }
 }

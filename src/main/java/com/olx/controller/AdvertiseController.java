@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("olx")
+@RequestMapping("/olx/advertise")
 public class AdvertiseController {
 
     @Autowired
@@ -25,7 +25,7 @@ public class AdvertiseController {
 
     // 7
     @ApiOperation(value = "Add a new advertise")
-    @PostMapping(value = "/advertise",
+    @PostMapping(value = "",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Advertise> addAdvertisement(@RequestBody Advertise advertise,
@@ -40,7 +40,7 @@ public class AdvertiseController {
 
     // 8
     @ApiOperation(value = "Update a specific advertise by id")
-    @PutMapping(value = "/advertise/{id}",
+    @PutMapping(value = "/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Advertise> updateAdvertisement(@PathVariable("id") int adId,
@@ -64,7 +64,6 @@ public class AdvertiseController {
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-
     }
 
     // 10
@@ -93,7 +92,7 @@ public class AdvertiseController {
 
     // 12
     @ApiOperation(value = "Search for an advertise filtered by different search criteria")
-    @GetMapping(value = "/advertise/search/filtercriteria",
+    @GetMapping(value = "/search/filtercriteria",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public List<Advertise> searchAdvertisementBySearchCriteria(
@@ -127,7 +126,7 @@ public class AdvertiseController {
 
     // 13
     @ApiOperation(value = "Search for an advertise that contains query search text")
-    @GetMapping(value = "/advertise/search",
+    @GetMapping(value = "/search",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public List<Advertise> searchAdvertisementBySearchText(@RequestParam("searchText") String searchText) {
         return advertiseService.searchAdvertisementBySearchText(searchText);
@@ -135,7 +134,7 @@ public class AdvertiseController {
 
     // 14
     @ApiOperation(value = "Get an advertise by id")
-    @GetMapping(value = "/advertise/{id}",
+    @GetMapping(value = "/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Advertise> getAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {

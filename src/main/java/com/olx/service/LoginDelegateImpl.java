@@ -19,7 +19,7 @@ public class LoginDelegateImpl implements LoginDelegate {
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", authToken);
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            return restTemplate.exchange("http://login-service/olx/user/validate/token", HttpMethod.GET, entity, Boolean.class);
+            return restTemplate.exchange("http://api-gateway/olx/user/validate/token", HttpMethod.GET, entity, Boolean.class);
         } catch (Exception e) {
             return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
         }
@@ -27,7 +27,7 @@ public class LoginDelegateImpl implements LoginDelegate {
 
     public ResponseEntity<Boolean> fallbackValidateToken(String authToken, Throwable ex){
         System.out.println("Error in validating token -> " + ex.getMessage());
-        return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(false, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class LoginDelegateImpl implements LoginDelegate {
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", authToken);
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            return restTemplate.exchange("http://login-service/olx/user/name", HttpMethod.GET, entity, String.class);
+            return restTemplate.exchange("http://api-gateway/olx/user/name", HttpMethod.GET, entity, String.class);
         } catch (Exception e) {
             return new ResponseEntity<>("", HttpStatus.BAD_REQUEST);
         }
@@ -45,6 +45,6 @@ public class LoginDelegateImpl implements LoginDelegate {
 
     public ResponseEntity<String> fallbackGetUsername(String authToken, Throwable ex){
         System.out.println("Error in validating token -> " + ex.getMessage());
-        return new ResponseEntity<>("", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("", HttpStatus.SERVICE_UNAVAILABLE);
     }
 }

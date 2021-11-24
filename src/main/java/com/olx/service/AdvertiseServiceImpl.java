@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -57,8 +59,6 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         oldEntity.setCategoryId(advertise.getCategoryId());
         oldEntity.setDescription(advertise.getDescription());
         oldEntity.setPrice(advertise.getPrice());
-        oldEntity.setUsername(advertise.getUsername());
-        oldEntity.setCreatedDate(advertise.getCreatedDate());
         oldEntity.setModifiedDate(LocalDate.now());
         oldEntity.setStatusId(advertise.getStatusId());
         return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(oldEntity));
@@ -66,11 +66,6 @@ public class AdvertiseServiceImpl implements AdvertiseService {
 
     // 9
     public List<Advertise> getAdvertisementByUser(String authToken) {
-
-        if (!authToken.equals("hardik")) {
-            throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_AUTH_TOKEN);
-        }
-
         return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByUsername(authToken));
     }
 
@@ -80,10 +75,12 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
-        if (!authToken.equals("hardik")) {
-            throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_AUTH_TOKEN);
+        AdvertiseEntity advertise = advertiseRepository.findByIdAndUsername(adId, authToken);
+        if(advertise == null){
+            return null;
+        } else {
+            return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertise);
         }
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByIdAndUsername(adId, authToken));
     }
 
     // 11
@@ -91,9 +88,6 @@ public class AdvertiseServiceImpl implements AdvertiseService {
 
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
-        }
-        if (!authToken.equals("hardik")) {
-            throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_AUTH_TOKEN);
         }
         advertiseRepository.deleteByIdAndUsername(adId, authToken);
         return !advertiseRepository.findById(adId).isPresent();
@@ -156,15 +150,21 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     }
 
     private void checkCategory(int categoryId) {
-        Category category = masterDataDelegate.getCategoryById(categoryId);
-        if (categoryId > -1 && category.getCategory() == null) {
+        ResponseEntity<Category> categoryResponse = masterDataDelegate.getCategoryById(categoryId);
+        if (categoryId <= -1
+                || categoryResponse.getStatusCode() != HttpStatus.OK
+                || !categoryResponse.hasBody()
+                || categoryResponse.getBody().getCategory() == null) {
             throw new InvalidCategoryIdException(categoryId);
         }
     }
 
     private void checkStatus(int statusId) {
-        Status status = masterDataDelegate.getStatusById(statusId);
-        if (statusId > -1 && status.getStatus() == null) {
+        ResponseEntity<Status> statusResponse = masterDataDelegate.getStatusById(statusId);
+        if (statusId <= -1
+                || statusResponse.getStatusCode() != HttpStatus.OK
+                || !statusResponse.hasBody()
+                || statusResponse.getBody().getStatus() == null) {
             throw new InvalidStatusIdException(statusId);
         }
     }

@@ -2,15 +2,16 @@ package com.olx.service;
 
 import com.olx.dto.Category;
 import com.olx.dto.Status;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 interface MasterDataDelegate {
-    List<Category> getCategories();
+    ResponseEntity<List<Category>> getCategories();
 
-    Category getCategoryById(int categoryId);
+    ResponseEntity<Category> getCategoryById(int categoryId);
 
-    List<Status> getStatus();
+    ResponseEntity<List<Status>> getStatus();
 
-    Status getStatusById(int statusId);
+    ResponseEntity<Status> getStatusById(int statusId);
 }
