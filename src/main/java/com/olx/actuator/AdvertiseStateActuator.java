@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@Endpoint(id = "advertise-stats")
+@Endpoint(id = "advertisestats")
 public class AdvertiseStateActuator {
 
     final List<Advertise> advertises = new ArrayList<>();
