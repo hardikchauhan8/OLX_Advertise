@@ -35,17 +35,20 @@ public class AdvertiseServiceImpl implements AdvertiseService {
 
     // 7
     public Advertise addAdvertisement(Advertise advertise,
-                                      String authToken) {
+                                      String username) {
         if (advertise == null) {
             throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_CREATE_ADVERTISE_DATA);
         }
+        advertise.setUsername(username);
+        advertise.setCreatedDate(LocalDate.now());
+        advertise.setModifiedDate(LocalDate.now());
+        advertise.setStatus(1);
         return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise)));
     }
 
     // 8
     public Advertise updateAdvertisement(int adId,
-                                         Advertise advertise,
-                                         String authToken) {
+                                         Advertise advertise) {
 
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
@@ -65,18 +68,18 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     }
 
     // 9
-    public List<Advertise> getAdvertisementByUser(String authToken) {
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByUsername(authToken));
+    public List<Advertise> getAdvertisementByUser(String username) {
+        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByUsername(username));
     }
 
     // 10
-    public Advertise getAdvertisementOfUserById(int adId, String authToken) {
+    public Advertise getAdvertisementOfUserById(int adId, String username) {
 
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
-        AdvertiseEntity advertise = advertiseRepository.findByIdAndUsername(adId, authToken);
-        if(advertise == null){
+        AdvertiseEntity advertise = advertiseRepository.findByIdAndUsername(adId, username);
+        if (advertise == null) {
             return null;
         } else {
             return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertise);
@@ -84,12 +87,12 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     }
 
     // 11
-    public boolean deleteAdvertisementById(int adId, String authToken) {
+    public boolean deleteAdvertisementById(int adId, String username) {
 
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
-        advertiseRepository.deleteByIdAndUsername(adId, authToken);
+        advertiseRepository.deleteByIdAndUsername(adId, username);
         return !advertiseRepository.findById(adId).isPresent();
     }
 
@@ -136,8 +139,13 @@ public class AdvertiseServiceImpl implements AdvertiseService {
                 }
                 break;
 
-            case "before":
-            case "after":
+            case "greatethan":
+            case "lessthan":
+                if (onDate == null) {
+                    throw new InvalidDateException(ExceptionConstants.INVALID_FROM_DATE);
+                }
+                break;
+
             case "equals":
                 if (onDate == null) {
                     throw new InvalidDateException(ExceptionConstants.INVALID_ON_DATE);
@@ -175,12 +183,9 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     }
 
     // 14
-    public Advertise getAdvertisementById(int adId, String authToken) {
+    public Advertise getAdvertisementById(int adId) {
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
-        }
-        if (!authToken.equals("hardik")) {
-            throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_AUTH_TOKEN);
         }
         if (advertiseRepository.findById(adId).isPresent()) {
             return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.getById(adId));

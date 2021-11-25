@@ -9,18 +9,17 @@ import java.util.List;
 public interface AdvertiseService {
 
     Advertise addAdvertisement(Advertise advertise,
-                               String authToken);
+                               String username);
 
     Advertise updateAdvertisement(int adId,
-                                  Advertise advertise,
-                                  String authToken);
+                                  Advertise advertise);
 
-    List<Advertise> getAdvertisementByUser(String authToken);
+    List<Advertise> getAdvertisementByUser(String username);
 
-    Advertise getAdvertisementOfUserById(int adId, String authToken);
+    Advertise getAdvertisementOfUserById(int adId, String username);
 
     @Transactional
-    boolean deleteAdvertisementById(int adId, String authToken);
+    boolean deleteAdvertisementById(int adId, String username);
 
     List<Advertise> searchAdvertisementBySearchCriteria(
             String searchText,
@@ -39,5 +38,5 @@ public interface AdvertiseService {
 
     List<Advertise> searchAdvertisementBySearchText(String searchText);
 
-    Advertise getAdvertisementById(int adId, String authToken);
+    Advertise getAdvertisementById(int adId);
 }

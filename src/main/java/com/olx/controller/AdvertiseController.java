@@ -31,8 +31,7 @@ public class AdvertiseController {
     public ResponseEntity<Advertise> addAdvertisement(@RequestBody Advertise advertise,
                                                       @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            advertise.setUsername(getUserName(authToken));
-            return new ResponseEntity<>(advertiseService.addAdvertisement(advertise, authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.addAdvertisement(advertise, getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -47,7 +46,7 @@ public class AdvertiseController {
                                                          @RequestBody Advertise advertise,
                                                          @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.updateAdvertisement(adId, advertise, authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.updateAdvertisement(adId, advertise), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -60,7 +59,7 @@ public class AdvertiseController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<List<Advertise>> getAdvertisementByUser(@RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementByUser(authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementByUser(getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -72,7 +71,7 @@ public class AdvertiseController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Advertise> getAdvertisementOfUserById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementOfUserById(adId, authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementOfUserById(adId, getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -84,7 +83,7 @@ public class AdvertiseController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Boolean> deleteAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.deleteAdvertisementById(adId, authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.deleteAdvertisementById(adId, getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -95,7 +94,7 @@ public class AdvertiseController {
     @GetMapping(value = "/search/filtercriteria",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public List<Advertise> searchAdvertisementBySearchCriteria(
+    public ResponseEntity<List<Advertise>> searchAdvertisementBySearchCriteria(
             @RequestParam(value = "searchText", required = false) String searchText,
             @RequestParam(value = "category", defaultValue = "-1", required = false) int category,
             @RequestParam(value = "postedBy", required = false) String postedBy,
@@ -109,7 +108,7 @@ public class AdvertiseController {
             @RequestParam(value = "records", defaultValue = "-1", required = false) int records,
             @RequestParam(value = "status", defaultValue = "-1", required = false) int status
     ) {
-        return advertiseService.searchAdvertisementBySearchCriteria(
+        return new ResponseEntity<>(advertiseService.searchAdvertisementBySearchCriteria(
                 searchText,
                 category,
                 postedBy,
@@ -121,15 +120,15 @@ public class AdvertiseController {
                 sortOn,
                 startIndex,
                 records,
-                status);
+                status), HttpStatus.OK);
     }
 
     // 13
     @ApiOperation(value = "Search for an advertise that contains query search text")
     @GetMapping(value = "/search",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public List<Advertise> searchAdvertisementBySearchText(@RequestParam("searchText") String searchText) {
-        return advertiseService.searchAdvertisementBySearchText(searchText);
+    public ResponseEntity<List<Advertise>> searchAdvertisementBySearchText(@RequestParam("searchText") String searchText) {
+        return new ResponseEntity<>(advertiseService.searchAdvertisementBySearchText(searchText), HttpStatus.OK);
     }
 
     // 14
@@ -138,7 +137,7 @@ public class AdvertiseController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Advertise> getAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementById(adId, authToken), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementById(adId), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -150,9 +149,9 @@ public class AdvertiseController {
     }
 
     private String getUserName(String authToken) {
-        ResponseEntity<String> validTokenResponse = loginDelegate.getUsername(authToken);
-        if (validTokenResponse.hasBody()) {
-            return validTokenResponse.getBody();
+        ResponseEntity<String> userResponse = loginDelegate.getUsername(authToken);
+        if (userResponse.hasBody()) {
+            return userResponse.getBody();
         }
         return "";
     }
