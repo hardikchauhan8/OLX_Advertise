@@ -9,16 +9,16 @@ public class Status {
     @ApiModelProperty(value = "Unique identifier of status")
     private int id;
 
-    @ApiModelProperty(value = "title of status")
-    private String status;
+    @ApiModelProperty(value = "name of status")
+    private String name;
 
     public Status() {
 
     }
 
-    public Status(int id, String status) {
+    public Status(int id, String name) {
         this.id = id;
-        this.status = status;
+        this.name = name;
     }
 
     public int getId() {
@@ -29,19 +29,19 @@ public class Status {
         this.id = id;
     }
 
-    public String getStatus() {
-        return status;
+    public String getName() {
+        return name;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
         return "Status{" +
                 "id=" + id +
-                ", status='" + status + '\'' +
+                ", name='" + name + '\'' +
                 '}';
     }
 }

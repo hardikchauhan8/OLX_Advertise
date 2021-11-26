@@ -1,5 +1,8 @@
 package com.olx.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.olx.utils.LocalDateDeserializer;
 import io.swagger.annotations.ApiModel;
@@ -19,8 +22,12 @@ public class Advertise {
     @ApiModelProperty(value = "Current price of the advertise")
     private double price;
 
-    @ApiModelProperty(value = "int of the advertise")
+    @JsonIgnoreProperties(allowGetters = true)
+    @ApiModelProperty(value = "Category id of the advertise")
     private int categoryId;
+
+    @ApiModelProperty(value = "Category of the advertise")
+    private Category category;
 
     @ApiModelProperty(value = "Description of the advertise")
     private String description;
@@ -28,16 +35,20 @@ public class Advertise {
     @ApiModelProperty(value = "Username of a user who has posted the advertise")
     private String username;
 
-    @JsonDeserialize(using= LocalDateDeserializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
     @ApiModelProperty(value = "Date when the advertise is created")
     private LocalDate createdDate;
 
-    @JsonDeserialize(using=LocalDateDeserializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
     @ApiModelProperty(value = "Date when the advertise is last updated")
     private LocalDate modifiedDate;
 
+    @JsonIgnoreProperties(allowGetters = true)
     @ApiModelProperty(value = "Current statusId of the advertise")
     private int statusId;
+
+    @ApiModelProperty(value = "Current status of the advertise")
+    private Status status;
 
     public Advertise() {
 
@@ -53,6 +64,20 @@ public class Advertise {
         this.createdDate = createdDate;
         this.modifiedDate = modifiedDate;
         this.statusId = statusId;
+    }
+
+    public Advertise(int id, String title, double price, int categoryId, Category category, String description, String username, LocalDate createdDate, LocalDate modifiedDate, int statusId, Status status) {
+        this.id = id;
+        this.title = title;
+        this.price = price;
+        this.categoryId = categoryId;
+        this.category = category;
+        this.description = description;
+        this.username = username;
+        this.createdDate = createdDate;
+        this.modifiedDate = modifiedDate;
+        this.statusId = statusId;
+        this.status = status;
     }
 
     public int getId() {
@@ -123,20 +148,41 @@ public class Advertise {
         return statusId;
     }
 
-    public void setStatus(int statusId) {
+    public void setStatusId(int statusId) {
         this.statusId = statusId;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     @Override
-    public String toString() {
-        return "Advertise [id=" + id
-                + ", title=" + title
-                + ", price=" + price
-                + ", categoryId=" + categoryId
-                + ", description=" + description
-                + ", username=" + username
-                + ", createdDate=" + createdDate
-                + ", modifiedDate=" + modifiedDate
-                + ", statusId=" + statusId + "]";
+    public String
+    toString() {
+        return "Advertise { " +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", price=" + price +
+                ", categoryId=" + categoryId +
+                ", category=" + "Category{ " + "id=" + id + ", category='" + category + "' }" +
+                ", description='" + description + '\'' +
+                ", username='" + username + '\'' +
+                ", createdDate=" + createdDate +
+                ", modifiedDate=" + modifiedDate +
+                ", statusId=" + statusId +
+                ", status=" + "Status{ " + "id=" + id + ", status='" + status + "' }'" +
+                " }";
     }
 }

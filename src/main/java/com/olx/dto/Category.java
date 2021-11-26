@@ -10,14 +10,19 @@ public class Category {
     private int id;
 
     @ApiModelProperty(value = "name of a category")
-    private String category;
+    private String name;
 
-    public Category(){
+    @ApiModelProperty(value = "discription of a category")
+    private String description;
+
+    public Category() {
 
     }
-    public Category(int id, String category) {
+
+    public Category(int id, String name, String description) {
         this.id = id;
-        this.category = category;
+        this.name = name;
+        this.description = description;
     }
 
     public int getId() {
@@ -28,19 +33,28 @@ public class Category {
         this.id = id;
     }
 
-    public String getCategory() {
-        return category;
+    public String getName() {
+        return name;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
     public String toString() {
         return "Category{" +
                 "id=" + id +
-                ", category='" + category + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 }

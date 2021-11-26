@@ -23,7 +23,7 @@ public interface AdvertiseService {
 
     List<Advertise> searchAdvertisementBySearchCriteria(
             String searchText,
-            int category,
+            int categoryId,
             String postedBy,
             String dateCondition,
             LocalDate onDate,
@@ -33,7 +33,7 @@ public interface AdvertiseService {
             String sortOn,
             int startIndex,
             int records,
-            int status
+            int statusId
     );
 
     List<Advertise> searchAdvertisementBySearchText(String searchText);

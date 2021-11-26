@@ -96,31 +96,33 @@ public class AdvertiseController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<List<Advertise>> searchAdvertisementBySearchCriteria(
             @RequestParam(value = "searchText", required = false) String searchText,
-            @RequestParam(value = "category", defaultValue = "-1", required = false) int category,
+            @RequestParam(value = "category", defaultValue = "-1", required = false) int categoryId,
             @RequestParam(value = "postedBy", required = false) String postedBy,
             @RequestParam(value = "dateCondition", required = false) String dateCondition,
             @RequestParam(value = "onDate", required = false) String onDate,
             @RequestParam(value = "fromDate", required = false) String fromDate,
             @RequestParam(value = "toDate", required = false) String toDate,
             @RequestParam(value = "sortBy", defaultValue = "asc", required = false) String sortBy,
-            @RequestParam(value = "sortOn", defaultValue = "title", required = false) String sortOn,
-            @RequestParam(value = "startIndex", defaultValue = "1", required = false) int startIndex,
-            @RequestParam(value = "records", defaultValue = "-1", required = false) int records,
-            @RequestParam(value = "status", defaultValue = "-1", required = false) int status
+            @RequestParam(value = "sortOn", defaultValue = "modifiedDate", required = false) String sortOn,
+            @RequestParam(value = "startIndex", defaultValue = "0", required = false) int startIndex,
+            @RequestParam(value = "records", defaultValue = "10", required = false) int records,
+            @RequestParam(value = "status", defaultValue = "-1", required = false) int statusId
     ) {
-        return new ResponseEntity<>(advertiseService.searchAdvertisementBySearchCriteria(
-                searchText,
-                category,
-                postedBy,
-                dateCondition,
-                DateUtils.convertStringToDate(onDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
-                DateUtils.convertStringToDate(fromDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
-                DateUtils.convertStringToDate(toDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
-                sortBy,
-                sortOn,
-                startIndex,
-                records,
-                status), HttpStatus.OK);
+        return new ResponseEntity<>(
+                advertiseService.searchAdvertisementBySearchCriteria(
+                        searchText,
+                        categoryId,
+                        postedBy,
+                        dateCondition,
+                        onDate == null ? null : DateUtils.convertStringToDate(onDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
+                        fromDate == null ? null : DateUtils.convertStringToDate(fromDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
+                        toDate == null ? null : DateUtils.convertStringToDate(toDate, DateUtils.DATE_FORMAT_YYYY_MM_DD),
+                        sortBy,
+                        sortOn,
+                        startIndex,
+                        records,
+                        statusId
+                ), HttpStatus.OK);
     }
 
     // 13

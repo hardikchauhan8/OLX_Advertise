@@ -1,11 +1,15 @@
 package com.olx.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.olx.dto.Advertise;
 import com.olx.dto.Category;
 import com.olx.dto.Status;
 import com.olx.entity.AdvertiseEntity;
-import com.olx.exception.*;
+import com.olx.exception.InvalidAdvertiseDataException;
+import com.olx.exception.InvalidAdvertiseIdException;
 import com.olx.repository.AdvertiseRepository;
+import com.olx.repository.SearchCriteriaSpecification;
 import com.olx.utils.AdvertiseConverterUtil;
 import com.olx.utils.ExceptionConstants;
 import org.modelmapper.ModelMapper;
@@ -14,12 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdvertiseServiceImpl implements AdvertiseService {
@@ -39,11 +42,20 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         if (advertise == null) {
             throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_CREATE_ADVERTISE_DATA);
         }
+
         advertise.setUsername(username);
         advertise.setCreatedDate(LocalDate.now());
         advertise.setModifiedDate(LocalDate.now());
-        advertise.setStatus(1);
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise)));
+        advertise.setStatusId(1);
+
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDto(
+                        modelMapper,
+                        advertiseRepository.save(
+                                AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise)
+                        )
+                )
+        );
     }
 
     // 8
@@ -60,16 +72,28 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         AdvertiseEntity oldEntity = advertiseRepository.getById(adId);
         oldEntity.setTitle(advertise.getTitle());
         oldEntity.setCategoryId(advertise.getCategoryId());
+        advertise.setCategory(masterDataDelegate.getCategoryById(advertise.getCategoryId()).getBody());
         oldEntity.setDescription(advertise.getDescription());
         oldEntity.setPrice(advertise.getPrice());
         oldEntity.setModifiedDate(LocalDate.now());
-        oldEntity.setStatusId(advertise.getStatusId());
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.save(oldEntity));
+        oldEntity.setStatusId(Math.max(oldEntity.getStatusId(), advertise.getStatusId()));
+
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDto(
+                        modelMapper,
+                        advertiseRepository.save(oldEntity)
+                )
+        );
     }
 
     // 9
     public List<Advertise> getAdvertisementByUser(String username) {
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByUsername(username));
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDto(
+                        modelMapper,
+                        advertiseRepository.findByUsername(username)
+                )
+        );
     }
 
     // 10
@@ -82,7 +106,12 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         if (advertise == null) {
             return null;
         } else {
-            return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertise);
+            return convertAdToResponse(
+                    AdvertiseConverterUtil.convertEntityToDto(
+                            modelMapper,
+                            advertise
+                    )
+            );
         }
     }
 
@@ -111,75 +140,43 @@ public class AdvertiseServiceImpl implements AdvertiseService {
             int records,
             int statusId
     ) {
-
-        checkCategory(categoryId);
-        checkDateConditions(dateCondition, onDate, fromDate, toDate);
-        checkSorting(sortBy);
-        checkStatus(statusId);
-
-        Sort sort = Sort.by(Sort.Direction.ASC, sortOn);
-        Pageable pageWithFewRecords = PageRequest.of(0, records, sort);
-        Page<AdvertiseEntity> advertiseEntities = advertiseRepository.searchAdvertisementBySearchCriteria(searchText, categoryId, postedBy, onDate, fromDate, toDate, statusId, pageWithFewRecords);
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseEntities.getContent());
-    }
-
-    private void checkSorting(String sortBy) {
-        if (!sortBy.equals("asc") && !sortBy.equals("desc")) {
-            throw new InvalidSortingException();
+        Sort sort;
+        if (sortBy.equalsIgnoreCase("asc")) {
+            sort = Sort.by(Sort.Direction.ASC, sortOn);
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, sortOn);
         }
-    }
 
-    private void checkDateConditions(String dateCondition, LocalDate onDate, LocalDate fromDate, LocalDate toDate) {
-        switch (dateCondition) {
-            case "between":
-                if (fromDate == null ||
-                        toDate == null ||
-                        fromDate.isAfter(toDate)) {
-                    throw new InvalidDateException(ExceptionConstants.INVALID_FROM_TO_DATES);
-                }
-                break;
+        Pageable pageWithFewRecords = PageRequest.of(startIndex, records, sort);
 
-            case "greatethan":
-            case "lessthan":
-                if (onDate == null) {
-                    throw new InvalidDateException(ExceptionConstants.INVALID_FROM_DATE);
-                }
-                break;
+        SearchCriteriaSpecification spec1 = new SearchCriteriaSpecification(
+                searchText,
+                categoryId,
+                postedBy,
+                dateCondition,
+                onDate,
+                fromDate,
+                toDate,
+                statusId
+        );
+        Page<AdvertiseEntity> advertiseEntities = advertiseRepository.findAll(spec1, pageWithFewRecords);
 
-            case "equals":
-                if (onDate == null) {
-                    throw new InvalidDateException(ExceptionConstants.INVALID_ON_DATE);
-                }
-                break;
-
-            default:
-                throw new InvalidDateConditionException();
-        }
-    }
-
-    private void checkCategory(int categoryId) {
-        ResponseEntity<Category> categoryResponse = masterDataDelegate.getCategoryById(categoryId);
-        if (categoryId <= -1
-                || categoryResponse.getStatusCode() != HttpStatus.OK
-                || !categoryResponse.hasBody()
-                || categoryResponse.getBody().getCategory() == null) {
-            throw new InvalidCategoryIdException(categoryId);
-        }
-    }
-
-    private void checkStatus(int statusId) {
-        ResponseEntity<Status> statusResponse = masterDataDelegate.getStatusById(statusId);
-        if (statusId <= -1
-                || statusResponse.getStatusCode() != HttpStatus.OK
-                || !statusResponse.hasBody()
-                || statusResponse.getBody().getStatus() == null) {
-            throw new InvalidStatusIdException(statusId);
-        }
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDto(
+                        modelMapper,
+                        advertiseEntities.getContent()
+                )
+        );
     }
 
     // 13
     public List<Advertise> searchAdvertisementBySearchText(String searchText) {
-        return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.findByTitleOrDescriptionContaining(searchText, searchText));
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDto(
+                        modelMapper,
+                        advertiseRepository.findByTitleOrDescriptionContainingIgnoreCase(searchText, searchText)
+                )
+        );
     }
 
     // 14
@@ -188,8 +185,45 @@ public class AdvertiseServiceImpl implements AdvertiseService {
             throw new InvalidAdvertiseIdException(adId);
         }
         if (advertiseRepository.findById(adId).isPresent()) {
-            return AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.getById(adId));
+            return convertAdToResponse(AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.getById(adId)));
         }
         return new Advertise();
+    }
+
+    private Advertise convertAdToResponse(Advertise advertise) {
+        advertise.setCategory(masterDataDelegate.getCategoryById(advertise.getCategoryId()).getBody());
+        advertise.setStatus(masterDataDelegate.getStatusById(advertise.getStatusId()).getBody());
+        return advertise;
+    }
+
+    private List<Advertise> convertAdToResponse(List<Advertise> advertiseList) {
+        List<Category> categories = masterDataDelegate.getCategories().getBody();
+        List<Status> statuses = masterDataDelegate.getStatus().getBody();
+        advertiseList = advertiseList
+                .stream()
+                .peek(advertise -> {
+                    advertise.setCategory(findCategory(categories, advertise.getCategoryId()));
+                    advertise.setStatus(findStatus(statuses, advertise.getStatusId()));
+                }).collect(Collectors.toList());
+
+        return advertiseList;
+    }
+
+    private Category findCategory(List<Category> categories, int id) {
+        if (categories == null)
+            return null;
+
+        List<Category> categoryList = new ObjectMapper().convertValue(categories, new TypeReference<List<Category>>() {
+        });
+        return categoryList.stream().filter(item -> item.getId() == id).findFirst().orElse(null);
+    }
+
+    private Status findStatus(List<Status> statuses, int id) {
+        if (statuses == null)
+            return null;
+
+        List<Status> statusList = new ObjectMapper().convertValue(statuses, new TypeReference<List<Status>>() {
+        });
+        return statusList.stream().filter(item -> item.getId() == id).findFirst().orElse(null);
     }
 }

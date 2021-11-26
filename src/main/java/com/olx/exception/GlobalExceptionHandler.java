@@ -20,7 +20,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             InvalidDateException.class,
             InvalidRecordNoException.class,
             InvalidStartIndexException.class,
-            InvalidSortingException.class
+            InvalidSortingException.class,
+            InvalidStatusIdException.class
 
     })
     public ResponseEntity<Object> invalidAdvertiseDataException(RuntimeException exception, WebRequest request) {
