@@ -1,6 +1,6 @@
 package com.olx.actuator;
 
-import com.olx.dto.Advertise;
+import com.olx.dto.AdvertiseV1;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Selector;
@@ -15,11 +15,11 @@ import java.util.List;
 @Endpoint(id = "advertisestats")
 public class AdvertiseStateActuator {
 
-    final List<Advertise> advertises = new ArrayList<>();
+    final List<AdvertiseV1> advertises = new ArrayList<>();
 
     @PostConstruct
     public void initialize() {
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 1,
                 "Mobile phone",
                 50000,
@@ -31,7 +31,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 2,
                 "Water botttle",
                 50,
@@ -43,7 +43,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 3,
                 "Laptop table",
                 600,
@@ -55,7 +55,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 4,
                 "Laptop Bag",
                 1200,
@@ -67,7 +67,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 5,
                 "Laptop",
                 50000,
@@ -79,7 +79,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 6,
                 "Mobile phone",
                 70000,
@@ -91,7 +91,7 @@ public class AdvertiseStateActuator {
                 1
         ));
 
-        advertises.add(new Advertise(
+        advertises.add(new AdvertiseV1(
                 7,
                 "Laptop",
                 50000,
@@ -105,7 +105,7 @@ public class AdvertiseStateActuator {
     }
 
     @ReadOperation
-    public List<Advertise> getAdvertises(@Selector String status) {
+    public List<AdvertiseV1> getAdvertises(@Selector String status) {
         if (status.isEmpty()) {
             return advertises;
         } else {
@@ -113,9 +113,9 @@ public class AdvertiseStateActuator {
         }
     }
 
-    private List<Advertise> getFilteredList(String status) {
-        List<Advertise> filteredList = new ArrayList<>();
-        for (Advertise advertise : advertises) {
+    private List<AdvertiseV1> getFilteredList(String status) {
+        List<AdvertiseV1> filteredList = new ArrayList<>();
+        for (AdvertiseV1 advertise : advertises) {
             if (String.valueOf(advertise.getStatusId()).equalsIgnoreCase(status)) {
                 filteredList.add(advertise);
             }

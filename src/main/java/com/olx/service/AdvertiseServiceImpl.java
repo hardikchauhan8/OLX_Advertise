@@ -2,7 +2,8 @@ package com.olx.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.olx.dto.Advertise;
+import com.olx.dto.AdvertiseV1;
+import com.olx.dto.AdvertiseV2;
 import com.olx.dto.Category;
 import com.olx.dto.Status;
 import com.olx.entity.AdvertiseEntity;
@@ -36,9 +37,13 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     @Autowired
     ModelMapper modelMapper;
 
+
+    /*
+          Advertise service apis for version V1
+     */
     // 7
-    public Advertise addAdvertisement(Advertise advertise,
-                                      String username) {
+    @Override
+    public AdvertiseV1 addAdvertisementV1(AdvertiseV1 advertise, String username) {
         if (advertise == null) {
             throw new InvalidAdvertiseDataException(ExceptionConstants.INVALID_CREATE_ADVERTISE_DATA);
         }
@@ -48,20 +53,15 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         advertise.setModifiedDate(LocalDate.now());
         advertise.setStatusId(1);
 
-        return convertAdToResponse(
-                AdvertiseConverterUtil.convertEntityToDto(
-                        modelMapper,
-                        advertiseRepository.save(
-                                AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise)
-                        )
-                )
+        return AdvertiseConverterUtil.convertEntityToDtoV1(
+                modelMapper,
+                advertiseRepository.save(AdvertiseConverterUtil.convertDtoToEntity(modelMapper, advertise))
         );
     }
 
     // 8
-    public Advertise updateAdvertisement(int adId,
-                                         Advertise advertise) {
-
+    @Override
+    public AdvertiseV1 updateAdvertisementV1(int adId, AdvertiseV1 advertise) {
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
@@ -72,33 +72,23 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         AdvertiseEntity oldEntity = advertiseRepository.getById(adId);
         oldEntity.setTitle(advertise.getTitle());
         oldEntity.setCategoryId(advertise.getCategoryId());
-        advertise.setCategory(masterDataDelegate.getCategoryById(advertise.getCategoryId()).getBody());
         oldEntity.setDescription(advertise.getDescription());
         oldEntity.setPrice(advertise.getPrice());
         oldEntity.setModifiedDate(LocalDate.now());
         oldEntity.setStatusId(Math.max(oldEntity.getStatusId(), advertise.getStatusId()));
 
-        return convertAdToResponse(
-                AdvertiseConverterUtil.convertEntityToDto(
-                        modelMapper,
-                        advertiseRepository.save(oldEntity)
-                )
-        );
+        return AdvertiseConverterUtil.convertEntityToDtoV1(modelMapper, advertiseRepository.save(oldEntity));
     }
 
     // 9
-    public List<Advertise> getAdvertisementByUser(String username) {
-        return convertAdToResponse(
-                AdvertiseConverterUtil.convertEntityToDto(
-                        modelMapper,
-                        advertiseRepository.findByUsername(username)
-                )
-        );
+    @Override
+    public List<AdvertiseV1> getAdvertisementByUserV1(String username) {
+        return AdvertiseConverterUtil.convertEntityToDtoV1(modelMapper, advertiseRepository.findByUsername(username));
     }
 
     // 10
-    public Advertise getAdvertisementOfUserById(int adId, String username) {
-
+    @Override
+    public AdvertiseV1 getAdvertisementOfUserByIdV1(int adId, String username) {
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
@@ -106,12 +96,7 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         if (advertise == null) {
             return null;
         } else {
-            return convertAdToResponse(
-                    AdvertiseConverterUtil.convertEntityToDto(
-                            modelMapper,
-                            advertise
-                    )
-            );
+            return AdvertiseConverterUtil.convertEntityToDtoV1(modelMapper, advertise);
         }
     }
 
@@ -126,7 +111,81 @@ public class AdvertiseServiceImpl implements AdvertiseService {
     }
 
     // 12
-    public List<Advertise> searchAdvertisementBySearchCriteria(
+    @Override
+    public List<AdvertiseV1> searchAdvertisementBySearchCriteriaV1(String searchText, int categoryId, String postedBy, String dateCondition, LocalDate onDate, LocalDate fromDate, LocalDate toDate, String sortBy, String sortOn, int startIndex, int records, int statusId) {
+        Sort sort;
+        if (sortBy.equalsIgnoreCase("asc")) {
+            sort = Sort.by(Sort.Direction.ASC, sortOn);
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, sortOn);
+        }
+
+        Pageable pageWithFewRecords = PageRequest.of(startIndex, records, sort);
+
+        SearchCriteriaSpecification spec1 = new SearchCriteriaSpecification(
+                searchText,
+                categoryId,
+                postedBy,
+                dateCondition,
+                onDate,
+                fromDate,
+                toDate,
+                statusId
+        );
+        Page<AdvertiseEntity> advertiseEntities = advertiseRepository.findAll(spec1, pageWithFewRecords);
+
+        return AdvertiseConverterUtil.convertEntityToDtoV1(modelMapper, advertiseEntities.getContent());
+    }
+
+    // 13
+    @Override
+    public List<AdvertiseV1> searchAdvertisementBySearchTextV1(String searchText) {
+        return AdvertiseConverterUtil.convertEntityToDtoV1(
+                modelMapper, advertiseRepository.findByTitleOrDescriptionContainingIgnoreCase(searchText, searchText)
+        );
+    }
+
+    // 14
+    @Override
+    public AdvertiseV1 getAdvertisementByIdV1(int adId) {
+        if (!advertiseRepository.findById(adId).isPresent()) {
+            throw new InvalidAdvertiseIdException(adId);
+        }
+        if (advertiseRepository.findById(adId).isPresent()) {
+            return AdvertiseConverterUtil.convertEntityToDtoV1(modelMapper, advertiseRepository.getById(adId));
+        }
+        return new AdvertiseV1();
+    }
+
+    /*
+         Advertise service apis for version V2
+    */
+    // 9
+    public List<AdvertiseV2> getAdvertisementByUserV2(String username) {
+        return convertAdToResponse(
+                AdvertiseConverterUtil.convertEntityToDtoV2(
+                        modelMapper,
+                        advertiseRepository.findByUsername(username)
+                )
+        );
+    }
+
+    // 10
+    public AdvertiseV2 getAdvertisementOfUserByIdV2(int adId, String username) {
+
+        if (!advertiseRepository.findById(adId).isPresent()) {
+            throw new InvalidAdvertiseIdException(adId);
+        }
+        AdvertiseEntity advertise = advertiseRepository.findByIdAndUsername(adId, username);
+        if (advertise == null) {
+            return null;
+        } else {
+            return convertAdToResponse(AdvertiseConverterUtil.convertEntityToDtoV2(modelMapper, advertise));
+        }
+    }
+
+    // 12
+    public List<AdvertiseV2> searchAdvertisementBySearchCriteriaV2(
             String searchText,
             int categoryId,
             String postedBy,
@@ -162,41 +221,39 @@ public class AdvertiseServiceImpl implements AdvertiseService {
         Page<AdvertiseEntity> advertiseEntities = advertiseRepository.findAll(spec1, pageWithFewRecords);
 
         return convertAdToResponse(
-                AdvertiseConverterUtil.convertEntityToDto(
-                        modelMapper,
-                        advertiseEntities.getContent()
-                )
+                AdvertiseConverterUtil.convertEntityToDtoV2(modelMapper, advertiseEntities.getContent())
         );
     }
 
     // 13
-    public List<Advertise> searchAdvertisementBySearchText(String searchText) {
+    public List<AdvertiseV2> searchAdvertisementBySearchTextV2(String searchText) {
         return convertAdToResponse(
-                AdvertiseConverterUtil.convertEntityToDto(
+                AdvertiseConverterUtil.convertEntityToDtoV2(
                         modelMapper,
-                        advertiseRepository.findByTitleOrDescriptionContainingIgnoreCase(searchText, searchText)
-                )
+                        advertiseRepository.findByTitleOrDescriptionContainingIgnoreCase(searchText, searchText))
         );
     }
 
     // 14
-    public Advertise getAdvertisementById(int adId) {
+    public AdvertiseV2 getAdvertisementByIdV2(int adId) {
         if (!advertiseRepository.findById(adId).isPresent()) {
             throw new InvalidAdvertiseIdException(adId);
         }
         if (advertiseRepository.findById(adId).isPresent()) {
-            return convertAdToResponse(AdvertiseConverterUtil.convertEntityToDto(modelMapper, advertiseRepository.getById(adId)));
+            return convertAdToResponse(AdvertiseConverterUtil.convertEntityToDtoV2(
+                    modelMapper, advertiseRepository.getById(adId))
+            );
         }
-        return new Advertise();
+        return new AdvertiseV2();
     }
 
-    private Advertise convertAdToResponse(Advertise advertise) {
+    private AdvertiseV2 convertAdToResponse(AdvertiseV2 advertise) {
         advertise.setCategory(masterDataDelegate.getCategoryById(advertise.getCategoryId()).getBody());
         advertise.setStatus(masterDataDelegate.getStatusById(advertise.getStatusId()).getBody());
         return advertise;
     }
 
-    private List<Advertise> convertAdToResponse(List<Advertise> advertiseList) {
+    private List<AdvertiseV2> convertAdToResponse(List<AdvertiseV2> advertiseList) {
         List<Category> categories = masterDataDelegate.getCategories().getBody();
         List<Status> statuses = masterDataDelegate.getStatus().getBody();
         advertiseList = advertiseList

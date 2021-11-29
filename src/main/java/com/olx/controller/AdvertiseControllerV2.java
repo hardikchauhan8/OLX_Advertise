@@ -1,9 +1,10 @@
 package com.olx.controller;
 
-import com.olx.dto.Advertise;
+import com.olx.dto.AdvertiseV2;
 import com.olx.service.AdvertiseService;
 import com.olx.service.LoginDelegate;
 import com.olx.utils.DateUtils;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,8 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/olx/advertise")
-public class AdvertiseController {
+@RequestMapping("olx/advertise/v2")
+@Api(value = "Advertise Controller Version 2")
+public class AdvertiseControllerV2 {
 
     @Autowired
     AdvertiseService advertiseService;
@@ -23,43 +25,14 @@ public class AdvertiseController {
     @Autowired
     LoginDelegate loginDelegate;
 
-    // 7
-    @ApiOperation(value = "Add a new advertise")
-    @PostMapping(value = "",
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Advertise> addAdvertisement(@RequestBody Advertise advertise,
-                                                      @RequestHeader("Authorization") String authToken) {
-        if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.addAdvertisement(advertise, getUserName(authToken)), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    // 8
-    @ApiOperation(value = "Update a specific advertise by id")
-    @PutMapping(value = "/{id}",
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Advertise> updateAdvertisement(@PathVariable("id") int adId,
-                                                         @RequestBody Advertise advertise,
-                                                         @RequestHeader("Authorization") String authToken) {
-        if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.updateAdvertisement(adId, advertise), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        }
-    }
-
     // 9
     @ApiOperation(value = "Get all advertise posted by a user")
     @GetMapping(value = "/user/advertise",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<List<Advertise>> getAdvertisementByUser(@RequestHeader("Authorization") String authToken) {
+    public ResponseEntity<List<AdvertiseV2>> getAdvertisementByUser(@RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementByUser(getUserName(authToken)), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementByUserV2(getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -69,21 +42,9 @@ public class AdvertiseController {
     @ApiOperation(value = "Get a specific advertise by id posted by a user")
     @GetMapping(value = "/user/advertise/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Advertise> getAdvertisementOfUserById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
+    public ResponseEntity<AdvertiseV2> getAdvertisementOfUserById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementOfUserById(adId, getUserName(authToken)), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    // 11
-    @ApiOperation(value = "delete a specific advertise by id posted by a user")
-    @DeleteMapping(value = "/user/advertise/{id}",
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Boolean> deleteAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
-        if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.deleteAdvertisementById(adId, getUserName(authToken)), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementOfUserByIdV2(adId, getUserName(authToken)), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
@@ -94,7 +55,7 @@ public class AdvertiseController {
     @GetMapping(value = "/search/filtercriteria",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<List<Advertise>> searchAdvertisementBySearchCriteria(
+    public ResponseEntity<List<AdvertiseV2>> searchAdvertisementBySearchCriteria(
             @RequestParam(value = "searchText", required = false) String searchText,
             @RequestParam(value = "category", defaultValue = "-1", required = false) int categoryId,
             @RequestParam(value = "postedBy", required = false) String postedBy,
@@ -109,7 +70,7 @@ public class AdvertiseController {
             @RequestParam(value = "status", defaultValue = "-1", required = false) int statusId
     ) {
         return new ResponseEntity<>(
-                advertiseService.searchAdvertisementBySearchCriteria(
+                advertiseService.searchAdvertisementBySearchCriteriaV2(
                         searchText,
                         categoryId,
                         postedBy,
@@ -129,17 +90,17 @@ public class AdvertiseController {
     @ApiOperation(value = "Search for an advertise that contains query search text")
     @GetMapping(value = "/search",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<List<Advertise>> searchAdvertisementBySearchText(@RequestParam("searchText") String searchText) {
-        return new ResponseEntity<>(advertiseService.searchAdvertisementBySearchText(searchText), HttpStatus.OK);
+    public ResponseEntity<List<AdvertiseV2>> searchAdvertisementBySearchText(@RequestParam("searchText") String searchText) {
+        return new ResponseEntity<>(advertiseService.searchAdvertisementBySearchTextV2(searchText), HttpStatus.OK);
     }
 
     // 14
     @ApiOperation(value = "Get an advertise by id")
     @GetMapping(value = "/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Advertise> getAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
+    public ResponseEntity<AdvertiseV2> getAdvertisementById(@PathVariable("id") int adId, @RequestHeader("Authorization") String authToken) {
         if (isValidToken(authToken)) {
-            return new ResponseEntity<>(advertiseService.getAdvertisementById(adId), HttpStatus.OK);
+            return new ResponseEntity<>(advertiseService.getAdvertisementByIdV2(adId), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }

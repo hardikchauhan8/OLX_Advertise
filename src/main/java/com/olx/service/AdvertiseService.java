@@ -1,6 +1,7 @@
 package com.olx.service;
 
-import com.olx.dto.Advertise;
+import com.olx.dto.AdvertiseV1;
+import com.olx.dto.AdvertiseV2;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -8,20 +9,23 @@ import java.util.List;
 
 public interface AdvertiseService {
 
-    Advertise addAdvertisement(Advertise advertise,
-                               String username);
+    /**
+     * Apis for Advertise controller version 1
+     */
+    AdvertiseV1 addAdvertisementV1(AdvertiseV1 advertise,
+                                   String username);
 
-    Advertise updateAdvertisement(int adId,
-                                  Advertise advertise);
+    AdvertiseV1 updateAdvertisementV1(int adId,
+                                      AdvertiseV1 advertise);
 
-    List<Advertise> getAdvertisementByUser(String username);
+    List<AdvertiseV1> getAdvertisementByUserV1(String username);
 
-    Advertise getAdvertisementOfUserById(int adId, String username);
+    AdvertiseV1 getAdvertisementOfUserByIdV1(int adId, String username);
 
     @Transactional
     boolean deleteAdvertisementById(int adId, String username);
 
-    List<Advertise> searchAdvertisementBySearchCriteria(
+    List<AdvertiseV1> searchAdvertisementBySearchCriteriaV1(
             String searchText,
             int categoryId,
             String postedBy,
@@ -36,7 +40,34 @@ public interface AdvertiseService {
             int statusId
     );
 
-    List<Advertise> searchAdvertisementBySearchText(String searchText);
+    List<AdvertiseV1> searchAdvertisementBySearchTextV1(String searchText);
 
-    Advertise getAdvertisementById(int adId);
+    AdvertiseV1 getAdvertisementByIdV1(int adId);
+
+    /**
+     * Apis for Advertise controller version 2
+     */
+
+    List<AdvertiseV2> getAdvertisementByUserV2(String username);
+
+    AdvertiseV2 getAdvertisementOfUserByIdV2(int adId, String username);
+
+    List<AdvertiseV2> searchAdvertisementBySearchCriteriaV2(
+            String searchText,
+            int categoryId,
+            String postedBy,
+            String dateCondition,
+            LocalDate onDate,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String sortBy,
+            String sortOn,
+            int startIndex,
+            int records,
+            int statusId
+    );
+
+    List<AdvertiseV2> searchAdvertisementBySearchTextV2(String searchText);
+
+    AdvertiseV2 getAdvertisementByIdV2(int adId);
 }
